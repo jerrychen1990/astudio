@@ -5,13 +5,17 @@
   "description": "A minimal full-stack demo with login and API key management.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
+    "start": "APP_ENV=production node server.js",
+    "start:dev": "APP_ENV=development node server.js",
+    "start:prod": "APP_ENV=production node server.js",
+    "dev": "APP_ENV=development node --watch server.js",
     "service:start": "bash scripts/service.sh start",
+    "service:start:bg": "bash scripts/service.sh start-bg",
     "service:stop": "bash scripts/service.sh stop",
     "service:restart": "bash scripts/service.sh restart",
     "service:status": "bash scripts/service.sh status",
-    "service:logs": "bash scripts/service.sh logs"
+    "service:logs": "bash scripts/service.sh logs",
+    "issue:verify": "bash scripts/issue-verify.sh"
   },
   "dependencies": {
     "better-sqlite3": "^12.8.0",

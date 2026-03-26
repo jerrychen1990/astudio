@@ -29,10 +29,22 @@ nvm use
 
 ```bash
 npm install
+npm run dev
+```
+
+开发环境默认监听：
+
+```bash
+http://0.0.0.0:9091
+```
+
+生产环境启动：
+
+```bash
 npm start
 ```
 
-默认监听：
+生产环境默认监听：
 
 ```bash
 http://0.0.0.0:9090
@@ -44,6 +56,12 @@ http://0.0.0.0:9090
 npm run service:start
 ```
 
+如需启动开发环境后台服务：
+
+```bash
+bash scripts/service.sh start development
+```
+
 启动后访问：
 
 ```bash
@@ -53,7 +71,7 @@ http://<你的服务器公网 IP 或域名>:9090
 首次启动后会自动创建本地 SQLite 数据库文件：
 
 ```bash
-data/app.db
+data/<env>/app.db
 ```
 
 用户需要先注册，再使用邮箱和密码登录。用户数据会保存在 SQLite 中，服务重启后仍然保留。
@@ -72,21 +90,34 @@ npm run service:logs
 
 各命令说明：
 
-- `npm run service:start`：后台启动服务，默认监听 `0.0.0.0:9090`，启动成功后立即进入日志追踪
-- `npm run service:stop`：停止后台服务
-- `npm run service:restart`：重启后台服务；重启完成后同样会进入日志追踪
-- `npm run service:status`：查看服务是否运行
-- `npm run service:logs`：实时追踪最近日志，等价于 `tail -n 100 -f logs/server.log`
+- `npm run service:start`：后台启动 `production` 环境，默认监听 `0.0.0.0:9090`，启动成功后立即进入日志追踪
+- `npm run service:start:bg`：后台启动 `production` 环境，但不跟随日志
+- `npm run service:stop`：停止 `production` 环境服务
+- `npm run service:restart`：重启 `production` 环境服务；重启完成后同样会进入日志追踪
+- `npm run service:status`：查看 `production` 环境服务状态
+- `npm run service:logs`：实时追踪 `production` 环境日志，等价于 `tail -n 100 -f logs/server.production.log`
+
+如果需要操作开发环境，可以显式传环境名：
+
+```bash
+bash scripts/service.sh start development
+bash scripts/service.sh start-bg development
+bash scripts/service.sh status development
+bash scripts/service.sh logs development
+bash scripts/service.sh stop development
+```
 
 可选环境变量：
 
-- `HOST`：默认 `0.0.0.0`
-- `PORT`：默认 `9090`
+- `APP_ENV`：支持 `development` / `production`
+- `APP_HOST`：用于在 shell 中显式覆盖监听地址，默认 `0.0.0.0`
+- `PORT`：`development` 默认 `9091`，`production` 默认 `9090`
+- `DATA_DIR`：默认按环境隔离到 `data/development` 或 `data/production`
 
 例如：
 
 ```bash
-HOST=0.0.0.0 PORT=9090 npm run service:start
+APP_ENV=development APP_HOST=0.0.0.0 PORT=19091 npm run service:start:bg
 ```
 
 推荐使用流程：
@@ -94,7 +125,7 @@ HOST=0.0.0.0 PORT=9090 npm run service:start
 ```bash
 nvm use
 npm install
-npm run service:start
+npm run dev
 ```
 
 如果你修改了 [server.js](/Users/chenhao/workspace/astudio/server.js)，可以用下面的命令重启服务：
@@ -105,8 +136,41 @@ npm run service:restart
 
 运行时文件：
 
-- 日志：`logs/server.log`
-- 进程 PID：`run/server.pid`
+- 环境配置：`.env.development`、`.env.production`
+- 日志：`logs/server.<env>.log`
+- 进程 PID：`run/server.<env>.pid`
+
+## 环境配置
+
+项目会按以下顺序加载环境变量：
+
+1. 当前 shell 中已导出的环境变量
+2. 项目根目录下的 `.env`
+3. 对应环境文件 `.env.development` 或 `.env.production`
+
+当前仓库已提供两套默认配置：
+
+- `.env.development`：默认端口 `9091`
+- `.env.production`：默认端口 `9090`
+
+如果 shell 中显式传入 `APP_ENV`、`APP_HOST`、`PORT`、`DATA_DIR`，shell 变量优先。
+
+## Issue 验证阶段
+
+当 issue 处理完成后，可执行：
+
+```bash
+npm run issue:verify
+```
+
+该命令会：
+
+- 自动以 `development` 环境在后台启动服务
+- 输出当前访问地址与日志位置
+- 在终端等待人工输入 `yes` 确认
+- 只有确认后才继续后续流程
+
+这对应 issue 中要求的“处理完成后进入验证阶段，并默认启动 DEV 后端”。
 
 对外访问说明：
 

@@ -3,15 +3,20 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+. "$ROOT_DIR/scripts/env.sh"
+
 PID_DIR="$ROOT_DIR/run"
 LOG_DIR="$ROOT_DIR/logs"
-PID_FILE="$PID_DIR/server.pid"
-LOG_FILE="$LOG_DIR/server.log"
 NODE_BIN="${NODE_BIN:-node}"
-HOST="${HOST:-0.0.0.0}"
-PORT="${PORT:-9090}"
 
 mkdir -p "$PID_DIR" "$LOG_DIR"
+
+COMMAND="${1:-}"
+ENV_NAME="${2:-${APP_ENV:-production}}"
+load_app_env "$ENV_NAME"
+
+PID_FILE="$PID_DIR/server.${APP_ENV}.pid"
+LOG_FILE="$LOG_DIR/server.${APP_ENV}.log"
 
 is_running() {
   if [[ ! -f "$PID_FILE" ]]; then
@@ -34,40 +39,43 @@ is_running() {
 }
 
 start_server() {
+  local follow_logs="${1:-false}"
+
   if is_running; then
-    echo "服务已在运行，PID: $(cat "$PID_FILE")"
+    echo "[$APP_ENV] 服务已在运行，PID: $(cat "$PID_FILE")"
+    echo "监听地址: http://$HOST:$PORT"
     echo "日志文件: $LOG_FILE"
-    show_logs
+    if [[ "$follow_logs" == "true" ]]; then
+      show_logs
+    fi
     return 0
   fi
 
   (
     cd "$ROOT_DIR"
-    if command -v setsid >/dev/null 2>&1; then
-      nohup env HOST="$HOST" PORT="$PORT" setsid "$NODE_BIN" server.js >>"$LOG_FILE" 2>&1 &
-    else
-      nohup env HOST="$HOST" PORT="$PORT" "$NODE_BIN" server.js >>"$LOG_FILE" 2>&1 &
-    fi
+    nohup env APP_ENV="$APP_ENV" NODE_ENV="$NODE_ENV" HOST="$HOST" PORT="$PORT" DATA_DIR="$DATA_DIR" "$NODE_BIN" server.js </dev/null >>"$LOG_FILE" 2>&1 &
     echo $! >"$PID_FILE"
   )
 
   sleep 1
 
   if is_running; then
-    echo "服务启动成功，PID: $(cat "$PID_FILE")"
+    echo "[$APP_ENV] 服务启动成功，PID: $(cat "$PID_FILE")"
     echo "监听地址: http://$HOST:$PORT"
     echo "日志文件: $LOG_FILE"
-    show_logs
+    if [[ "$follow_logs" == "true" ]]; then
+      show_logs
+    fi
     return 0
   fi
 
-  echo "服务启动失败，请检查日志: $LOG_FILE" >&2
+  echo "[$APP_ENV] 服务启动失败，请检查日志: $LOG_FILE" >&2
   exit 1
 }
 
 stop_server() {
   if ! is_running; then
-    echo "服务未运行"
+    echo "[$APP_ENV] 服务未运行"
     return 0
   fi
 
@@ -78,23 +86,25 @@ stop_server() {
   for _ in {1..10}; do
     if ! kill -0 "$pid" >/dev/null 2>&1; then
       rm -f "$PID_FILE"
-      echo "服务已停止"
+      echo "[$APP_ENV] 服务已停止"
       return 0
     fi
     sleep 1
   done
 
-  echo "服务停止超时，尝试强制结束 PID: $pid"
+  echo "[$APP_ENV] 服务停止超时，尝试强制结束 PID: $pid"
   kill -9 "$pid"
   rm -f "$PID_FILE"
-  echo "服务已强制停止"
+  echo "[$APP_ENV] 服务已强制停止"
 }
 
 status_server() {
   if is_running; then
-    echo "服务运行中，PID: $(cat "$PID_FILE")"
+    echo "[$APP_ENV] 服务运行中，PID: $(cat "$PID_FILE")"
+    echo "监听地址: http://$HOST:$PORT"
+    echo "日志文件: $LOG_FILE"
   else
-    echo "服务未运行"
+    echo "[$APP_ENV] 服务未运行"
   fi
 }
 
@@ -103,9 +113,12 @@ show_logs() {
   tail -n 100 -f "$LOG_FILE"
 }
 
-case "${1:-}" in
+case "$COMMAND" in
   start)
-    start_server
+    start_server true
+    ;;
+  start-bg)
+    start_server false
     ;;
   stop)
     stop_server
@@ -121,7 +134,7 @@ case "${1:-}" in
     show_logs
     ;;
   *)
-    echo "用法: bash scripts/service.sh {start|stop|restart|status|logs}" >&2
+    echo "用法: bash scripts/service.sh {start|start-bg|stop|restart|status|logs} [development|production]" >&2
     exit 1
     ;;
 esac
