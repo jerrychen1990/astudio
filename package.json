@@ -1,0 +1,19 @@
+{
+  "name": "astudio-api-key-manager",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A minimal full-stack demo with login and API key management.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "service:start": "bash scripts/service.sh start",
+    "service:stop": "bash scripts/service.sh stop",
+    "service:restart": "bash scripts/service.sh restart",
+    "service:status": "bash scripts/service.sh status",
+    "service:logs": "bash scripts/service.sh logs"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
