@@ -87,6 +87,17 @@ label span,
   gap: 16px;
 }
 
+.auth-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.auth-grid h3 {
+  margin: 0;
+  font-size: 24px;
+}
+
 .inline-form {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: end;
@@ -196,7 +207,8 @@ button:hover {
 
   .panel-head,
   .key-card,
-  .inline-form {
+  .inline-form,
+  .auth-grid {
     grid-template-columns: 1fr;
     display: grid;
   }
