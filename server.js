@@ -3,12 +3,14 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const Database = require("better-sqlite3");
+const { loadAppConfig } = require("./config/load-env");
 
 const app = express();
-const host = process.env.HOST || "0.0.0.0";
-const port = process.env.PORT || 9090;
-const dataDir = path.join(__dirname, "data");
-const dbPath = path.join(dataDir, "app.db");
+const config = loadAppConfig(__dirname);
+const host = config.host;
+const port = config.port;
+const dataDir = config.dataDir;
+const dbPath = config.dbPath;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
@@ -237,5 +239,7 @@ app.delete("/api/keys/:id", requireAuth, (req, res) => {
 });
 
 app.listen(port, host, () => {
-  console.log(`Server is running at http://${host}:${port}`);
+  console.log(
+    `Server is running at http://${host}:${port} (env=${config.appEnv}, dataDir=${dataDir})`
+  );
 });
