@@ -13,4 +13,5 @@ if [[ "$current_branch" != "main" ]]; then
 fi
 
 git pull origin main
+npm install
 ./scripts/service.sh restart
