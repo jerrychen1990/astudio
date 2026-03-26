@@ -1,5 +1,6 @@
 const loginPanel = document.querySelector("#login-panel");
 const appPanel = document.querySelector("#app-panel");
+const registerForm = document.querySelector("#register-form");
 const loginForm = document.querySelector("#login-form");
 const createKeyForm = document.querySelector("#create-key-form");
 const logoutBtn = document.querySelector("#logout-btn");
@@ -76,7 +77,7 @@ function renderKeys(keys) {
 
 async function loadCurrentUser() {
   const user = await request("/api/me");
-  welcomeTextEl.textContent = `当前用户：${user.username}`;
+  welcomeTextEl.textContent = `当前用户：${user.username} (${user.email})`;
   loginPanel.classList.add("hidden");
   appPanel.classList.remove("hidden");
 }
@@ -86,6 +87,29 @@ async function loadKeys() {
   renderKeys(keys);
 }
 
+registerForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(registerForm);
+
+  try {
+    await request("/api/register", {
+      method: "POST",
+      body: JSON.stringify({
+        email: formData.get("email"),
+        username: formData.get("username"),
+        password: formData.get("password")
+      })
+    });
+
+    loginForm.elements.email.value = formData.get("email");
+    loginForm.elements.password.value = "";
+    registerForm.reset();
+    setMessage("注册成功，请使用邮箱和密码登录");
+  } catch (error) {
+    setMessage(error.message, true);
+  }
+});
+
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(loginForm);
@@ -94,7 +118,7 @@ loginForm.addEventListener("submit", async (event) => {
     const result = await request("/api/login", {
       method: "POST",
       body: JSON.stringify({
-        username: formData.get("username"),
+        email: formData.get("email"),
         password: formData.get("password")
       })
     });
@@ -156,6 +180,7 @@ logoutBtn.addEventListener("click", async () => {
   } catch (_error) {
   } finally {
     clearToken();
+    loginForm.reset();
     appPanel.classList.add("hidden");
     loginPanel.classList.remove("hidden");
     renderKeys([]);

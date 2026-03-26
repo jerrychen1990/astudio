@@ -18,20 +18,42 @@
 
       <section class="panel" id="login-panel">
         <div class="panel-head">
-          <h2>登录入口</h2>
-          <p>默认账号：admin / admin123</p>
+          <div>
+            <h2>账户入口</h2>
+            <p>支持邮箱注册、邮箱登录，用户数据会持久化到本地 SQLite。</p>
+          </div>
         </div>
-        <form id="login-form" class="form">
-          <label>
-            <span>用户名</span>
-            <input name="username" type="text" value="admin" required />
-          </label>
-          <label>
-            <span>密码</span>
-            <input name="password" type="password" value="admin123" required />
-          </label>
-          <button type="submit">登录</button>
-        </form>
+        <div class="auth-grid">
+          <form id="register-form" class="form">
+            <h3>注册</h3>
+            <label>
+              <span>邮箱</span>
+              <input name="email" type="email" placeholder="name@example.com" required />
+            </label>
+            <label>
+              <span>用户名</span>
+              <input name="username" type="text" placeholder="例如 Jerry" required />
+            </label>
+            <label>
+              <span>密码</span>
+              <input name="password" type="password" placeholder="至少 6 位" required />
+            </label>
+            <button type="submit">注册</button>
+          </form>
+
+          <form id="login-form" class="form">
+            <h3>登录</h3>
+            <label>
+              <span>邮箱</span>
+              <input name="email" type="email" placeholder="name@example.com" required />
+            </label>
+            <label>
+              <span>密码</span>
+              <input name="password" type="password" placeholder="输入密码" required />
+            </label>
+            <button type="submit">登录</button>
+          </form>
+        </div>
       </section>
 
       <section class="panel hidden" id="app-panel">

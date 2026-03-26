@@ -2,6 +2,7 @@
 
 一个最小可运行的全栈示例项目，包含：
 
+- 注册入口
 - 登录入口
 - 登录后查看用户 API Key
 - 新增 API Key
@@ -10,6 +11,7 @@
 ## 技术栈
 
 - 后端：Node.js + Express
+- 数据库：SQLite
 - 前端：HTML / CSS / Vanilla JavaScript
 
 ## Node 版本
@@ -22,11 +24,6 @@
 ```bash
 nvm use
 ```
-
-## 默认账号
-
-- 用户名：`admin`
-- 密码：`admin123`
 
 ## 启动方式
 
@@ -52,6 +49,14 @@ npm run service:start
 ```bash
 http://<你的服务器公网 IP 或域名>:9090
 ```
+
+首次启动后会自动创建本地 SQLite 数据库文件：
+
+```bash
+data/app.db
+```
+
+用户需要先注册，再使用邮箱和密码登录。用户数据会保存在 SQLite 中，服务重启后仍然保留。
 
 ## 服务脚本
 
@@ -110,6 +115,7 @@ npm run service:restart
 
 ## 接口
 
+- `POST /api/register`：注册
 - `POST /api/login`：登录
 - `GET /api/me`：获取当前用户
 - `POST /api/logout`：退出登录
@@ -119,4 +125,6 @@ npm run service:restart
 
 ## 说明
 
-当前示例使用内存数据存储用户和 API Key，重启服务后会恢复初始数据。后续可以替换为数据库和正式鉴权方案。
+- 用户账户信息使用 SQLite 持久化存储，密码以哈希形式保存，不会明文写入数据库
+- 当前示例仍使用内存保存登录会话和 API Key 列表，服务重启后登录态与 API Key 列表不会保留
+- 这是一个最小示例，后续可以继续扩展更完整的鉴权和数据持久化方案
